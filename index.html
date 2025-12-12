@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toroidal Logic Simulator v4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"
+  }
+}
+</script>
+    <style>
+      @keyframes holographic-flicker {
+        0% { opacity: 1; text-shadow: 0 0 8px #00aaff, 0 0 2px #fff; }
+        2% { opacity: 0.8; text-shadow: 0 0 8px #ff00ff, 0 0 2px #fff; }
+        4% { opacity: 1; text-shadow: 0 0 8px #00aaff, 0 0 2px #fff; }
+        30% { opacity: 1; text-shadow: 0 0 8px #00aaff, 0 0 2px #fff; }
+        32% { opacity: 0.5; text-shadow: none; }
+        34% { opacity: 1; text-shadow: 0 0 8px #00aaff, 0 0 2px #fff; }
+        50% { opacity: 0.9; text-shadow: 0 0 12px #00aaff, 0 0 4px #fff; }
+        100% { opacity: 1; text-shadow: 0 0 8px #00aaff, 0 0 2px #fff; }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes bg-pan {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+       @keyframes pulse-shadow {
+        0%, 100% { box-shadow: 0 0 20px rgba(0, 170, 255, 0.1), inset 0 0 10px rgba(0, 170, 255, 0.05); }
+        50% { box-shadow: 0 0 25px rgba(0, 170, 255, 0.15), inset 0 0 14px rgba(0, 170, 255, 0.08); }
+      }
+      body {
+        background-color: #020617; /* Equivalent to bg-slate-950 */
+        font-family: 'Roboto Mono', monospace;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+          linear-gradient(rgba(0, 170, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 170, 255, 0.04) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: bg-pan 30s linear infinite;
+        z-index: -2;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0) 0%, #020617 80%);
+        z-index: -1;
+      }
+
+      .font-orbitron {
+        font-family: 'Orbitron', sans-serif;
+      }
+      .holographic-title {
+        animation: holographic-flicker 4s infinite linear;
+      }
+      .fade-in-component {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .scanlines::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        background: linear-gradient(rgba(18, 18, 18, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background-size: 100% 4px, 6px 100%;
+        z-index: 2;
+      }
+      .component-panel {
+          background-color: rgba(15, 23, 42, 0.6); /* bg-slate-900 with opacity */
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(51, 65, 85, 0.7); /* border-slate-700 */
+          animation: pulse-shadow 5s infinite ease-in-out;
+      }
+      .text-glow {
+        text-shadow: 0 0 5px currentColor;
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+        width: 100%;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        background: #334155; /* slate-700 */
+        height: 0.25rem;
+        border-radius: 0.25rem;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -6px;
+        background-color: #00aaff;
+        height: 1.25rem;
+        width: 0.75rem;
+        border-radius: 3px;
+        box-shadow: 0 0 5px #00aaff;
+        transition: background-color 0.2s;
+      }
+      input[type="range"]:hover::-webkit-slider-thumb {
+        background-color: #33bbff;
+      }
+      select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+      }
+      .tooltip-container {
+        opacity: 0;
+        transform: translateY(5px);
+        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        pointer-events: none;
+      }
+      .tooltip-container.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      /* Tutorial Styles */
+      .tutorial-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+      }
+      .tutorial-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(2, 6, 23, 0.5);
+        backdrop-filter: blur(2px);
+        animation: fadeIn 0.3s ease-out;
+      }
+      .tutorial-highlight {
+        position: absolute;
+        border-radius: 8px;
+        box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.7);
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        z-index: 1001;
+        pointer-events: none;
+      }
+      .tutorial-popover {
+        position: absolute;
+        z-index: 1002;
+        width: 320px;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        animation: fadeIn 0.4s ease-out;
+      }
+      .tutorial-popover-arrow {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+      }
+      .tutorial-popover-arrow.bottom {
+        top: 100%; left: 50%; transform: translateX(-50%);
+        border-width: 8px 8px 0 8px;
+        border-color: rgba(51, 65, 85, 0.7) transparent transparent transparent;
+      }
+      .tutorial-popover-arrow.top {
+        bottom: 100%; left: 50%; transform: translateX(-50%);
+        border-width: 0 8px 8px 8px;
+        border-color: transparent transparent rgba(30, 41, 59, 1) transparent; /* Match popover bg */
+      }
+      .tutorial-popover-arrow.left {
+        top: 50%; right: 100%; transform: translateY(-50%);
+        border-width: 8px 8px 8px 0;
+        border-color: transparent rgba(30, 41, 59, 1) transparent transparent;
+      }
+      .tutorial-popover-arrow.right {
+        top: 50%; left: 100%; transform: translateY(-50%);
+        border-width: 8px 0 8px 8px;
+        border-color: transparent transparent transparent rgba(30, 41, 59, 1);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-gray-300">
+    <div id="root"></div>
+    <div id="modal-root"></div>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "name": "🎈Neuromorphic Automaton",
+  "description": "An interactive 81-cell (9x9) neuromorphic lattice automaton simulation. Users can start, stop, and step through the simulation to observe the emergent behavior of the cellular automaton based on a set of defined rules.",
+  "requestFramePermissions": []
+}
