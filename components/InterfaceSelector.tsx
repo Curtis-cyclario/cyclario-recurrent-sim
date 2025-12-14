@@ -16,16 +16,18 @@ const primarySimModes: { id: SimulationMode; name: string; description: string }
 ];
 
 const secondarySimModes: { id: SimulationMode; name: string; description: string }[] = [
-  { id: 'ENTROPY_MODE', name: 'CHAOS', description: 'Visualizes the system\'s entropy and unpredictability.' },
+  { id: 'ENTROPY_MODE', name: 'ENTROPY', description: 'System Disorder: Visualizes entropy via the Swastika metric (Δs).' },
+  { id: 'SIGNAL_PATHWAYS', name: 'SIGNAL', description: 'Pathways: Visualizes signal propagation and causal connections.' },
   { id: 'PATTERN_GENERATOR', name: 'PATTERN', description: 'Generates complex, repeatable patterns based on kernel evolution.' },
-  { id: 'SIGNAL_PATHWAYS', name: 'LINK', description: 'Visualizes signal propagation and communication pathways between cells.' },
   { id: 'GLYPH_MAP', name: 'GLYPH', description: 'Self-Organizing Map: Cluster activation patterns into glyphs.' },
 ];
 
+const physicsMode: { id: SimulationMode; name: string; description: string } = 
+  { id: 'PHYSICS_EVAL', name: 'PHYSICS', description: 'Hardcore Evaluation: Phlop counters, governing equations, and optical power metrics.' };
+
+
 const infoModesTop: { id: SimulationMode; name: string; description: string }[] = [
-  { id: 'KERNEL_ARCHITECTURE', name: 'ANALYSIS', description: 'Kernel Architecture: Visualization of the core kernel and mirrored face.' },
-  { id: 'SYSTEM_MODEL', name: 'MODEL', description: 'System Model: The mathematical framework governing the automaton.' },
-  { id: 'CORE_CONCEPTS', name: 'CONCEPTS', description: 'Core Concepts: Learn about emergent computational structures.' },
+  { id: 'SYSTEM_ARCHITECTURE', name: 'ARCHITECTURE', description: 'Unified System Specification: Kernel topology, mathematical model, and core concepts.' },
 ];
 
 const infoModesBottom: { id: SimulationMode; name: string; description: string }[] = [
@@ -39,19 +41,45 @@ const SelectorButton: React.FC<{
   onClick: () => void;
   name: string;
   description: string;
-}> = ({ isActive, onClick, name, description }) => {
+  special?: boolean;
+}> = ({ isActive, onClick, name, description, special }) => {
   return (
     <Tooltip text={description}>
       <button
         onClick={onClick}
-        className={`relative flex-1 p-3 text-center transition-all duration-300 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-400 rounded-md
-          ${isActive ? 'bg-cyan-500/20 border-cyan-400/80' : 'bg-slate-800/50 border-slate-700/70 hover:bg-slate-700/50 hover:border-slate-500'}`}
+        className={`relative w-full p-3 text-center transition-all duration-300 ease-in-out transform focus:outline-none rounded-sm group
+          ${isActive 
+            ? 'bg-cyan-500/20 border-cyan-400/80' 
+            : special 
+                ? 'bg-slate-900/80 border-emerald-700/50 hover:bg-slate-800 hover:border-emerald-500' 
+                : 'bg-slate-800/50 border-slate-700/70 hover:bg-slate-700/50 hover:border-slate-500'
+          }
+          border h-full flex items-center justify-center
+          `}
       >
-        <div className="absolute top-1 right-1 h-2 w-2 rounded-full transition-colors duration-300" style={{
-            backgroundColor: isActive ? '#00aaff' : '#334155',
-            boxShadow: isActive ? '0 0 6px #00aaff' : 'none'
-        }}/>
-        <h4 className="font-orbitron font-bold tracking-widest text-base sm:text-lg" style={{color: isActive ? '#67e8f9' : '#94a3b8', textShadow: isActive ? '0 0 8px rgba(103, 232, 249, 0.5)' : 'none'}}>{name}</h4>
+        {/* Active Indicator Corner */}
+        {isActive && (
+            <>
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-400" />
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-400" />
+            </>
+        )}
+        
+        {/* Hover Corners (only if not active) */}
+        {!isActive && (
+            <>
+                <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-current opacity-0 group-hover:opacity-40 transition-opacity" />
+                <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-current opacity-0 group-hover:opacity-40 transition-opacity" />
+            </>
+        )}
+
+        {isActive && <div className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00aaff]" />}
+        
+        <h4 className={`font-orbitron font-bold tracking-widest text-sm sm:text-base 
+            ${isActive ? 'text-cyan-300' : special ? 'text-emerald-500' : 'text-slate-400 group-hover:text-slate-200'}`}
+        >
+            {name}
+        </h4>
       </button>
     </Tooltip>
   );
@@ -59,58 +87,65 @@ const SelectorButton: React.FC<{
 
 export const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({ currentMode, onModeChange }) => {
   return (
-    <div className="w-full max-w-5xl mx-auto my-4 fade-in-component interface-selector-container" style={{ animationDelay: '0.1s' }}>
-        <div className="component-panel p-2 rounded-lg">
-            <div className="flex flex-col md:flex-row items-stretch justify-center gap-2">
-                <div className="flex-1 flex flex-col items-stretch justify-center gap-2">
-                    <div className="flex items-stretch justify-center gap-2">
-                        {primarySimModes.map(mode => (
-                            <SelectorButton
-                                key={mode.id}
-                                isActive={currentMode === mode.id}
-                                onClick={() => onModeChange(mode.id)}
-                                name={mode.name}
-                                description={mode.description}
-                            />
-                        ))}
-                    </div>
-                    <div className="flex items-stretch justify-center gap-2">
-                         {secondarySimModes.map(mode => (
-                            <SelectorButton
-                                key={mode.id}
-                                isActive={currentMode === mode.id}
-                                onClick={() => onModeChange(mode.id)}
-                                name={mode.name}
-                                description={mode.description}
-                            />
-                        ))}
-                    </div>
+    <div className="w-full max-w-6xl mx-auto my-4 fade-in-component interface-selector-container" style={{ animationDelay: '0.1s' }}>
+        <div className="component-panel p-2 rounded-sm flex flex-col gap-2">
+            
+            {/* Top Row: Core, Face, Qube, Quant | Physics, Architecture */}
+            <div className="flex flex-col md:flex-row gap-2 h-14">
+                <div className="flex-[2] grid grid-cols-4 gap-2 h-full">
+                    {primarySimModes.map(mode => (
+                        <SelectorButton
+                            key={mode.id}
+                            isActive={currentMode === mode.id}
+                            onClick={() => onModeChange(mode.id)}
+                            name={mode.name}
+                            description={mode.description}
+                        />
+                    ))}
                 </div>
-                <div className="w-px bg-slate-700/70 self-stretch mx-2 hidden md:block"></div>
-                <div className="h-px bg-slate-700/70 my-2 md:hidden"></div>
-                <div className="flex-1 flex flex-col items-stretch justify-center gap-2">
-                    <div className="flex items-stretch justify-center gap-2">
-                        {infoModesTop.map(mode => (
-                            <SelectorButton
-                                key={mode.id}
-                                isActive={currentMode === mode.id}
-                                onClick={() => onModeChange(mode.id)}
-                                name={mode.name}
-                                description={mode.description}
-                            />
-                        ))}
-                    </div>
-                     <div className="flex items-stretch justify-center gap-2">
-                        {infoModesBottom.map(mode => (
-                            <SelectorButton
-                                key={mode.id}
-                                isActive={currentMode === mode.id}
-                                onClick={() => onModeChange(mode.id)}
-                                name={mode.name}
-                                description={mode.description}
-                            />
-                        ))}
-                    </div>
+                <div className="flex-[1] grid grid-cols-2 gap-2 h-full">
+                     <SelectorButton
+                        isActive={currentMode === physicsMode.id}
+                        onClick={() => onModeChange(physicsMode.id)}
+                        name={physicsMode.name}
+                        description={physicsMode.description}
+                        special
+                    />
+                    {infoModesTop.map(mode => (
+                        <SelectorButton
+                            key={mode.id}
+                            isActive={currentMode === mode.id}
+                            onClick={() => onModeChange(mode.id)}
+                            name={mode.name}
+                            description={mode.description}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Bottom Row: Entropy, Signal, Pattern, Glyph | Lore, Specs */}
+            <div className="flex flex-col md:flex-row gap-2 h-14">
+                <div className="flex-[2] grid grid-cols-4 gap-2 h-full">
+                    {secondarySimModes.map(mode => (
+                        <SelectorButton
+                            key={mode.id}
+                            isActive={currentMode === mode.id}
+                            onClick={() => onModeChange(mode.id)}
+                            name={mode.name}
+                            description={mode.description}
+                        />
+                    ))}
+                </div>
+                <div className="flex-[1] grid grid-cols-2 gap-2 h-full">
+                     {infoModesBottom.map(mode => (
+                        <SelectorButton
+                            key={mode.id}
+                            isActive={currentMode === mode.id}
+                            onClick={() => onModeChange(mode.id)}
+                            name={mode.name}
+                            description={mode.description}
+                        />
+                    ))}
                 </div>
             </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import type { MetricsData, PhysicsModel } from '../types';
@@ -25,7 +26,7 @@ const RESPONSE_SCHEMA = {
     briefing: { type: Type.STRING },
   },
   required: ['phase', 'briefing'],
-}
+};
 
 const ANALYSIS_WINDOW = 200; // Analyze up to the last 200 steps
 

@@ -7,9 +7,6 @@ import { Legend } from './components/Legend';
 import { PhaseScope } from './components/PhaseScope';
 import { KernelEditor } from './components/KernelEditor';
 import { CyclicManifold } from './components/CyclicManifold';
-import { KernelArchitecture } from './components/KernelArchitecture';
-import { SystemModel } from './components/SystemModel';
-import { CoreConcepts } from './components/CoreConcepts';
 import { ProjectLore } from './components/ProjectLore';
 import { FrameworkSpecs as FrameworkView } from './components/FrameworkSpecs';
 import { Footer } from './components/Footer';
@@ -31,6 +28,8 @@ import { GlyphMap } from './components/GlyphMap';
 import { GlobalSettingsPanel } from './components/GlobalSettingsPanel';
 import { GeminiGeneratorModal } from './components/GeminiGeneratorModal';
 import { LiveAnalysis } from './components/LiveAnalysis';
+import { PhysicsEngine } from './components/PhysicsEngine';
+import { SystemArchitecture } from './components/SystemArchitecture';
 import { DEPTH } from './constants';
 
 const App: React.FC = () => {
@@ -70,7 +69,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState<boolean>(false);
-  const [simulationMode, setSimulationMode] = useState<SimulationMode>('CYCLIC_MANIFOLD');
+  const [simulationMode, setSimulationMode] = useState<SimulationMode>('PHYSICS_EVAL');
 
   const glyphTrainStepRef = useRef(glyphTrainStep);
   useEffect(() => {
@@ -119,7 +118,7 @@ const App: React.FC = () => {
     setIsGeneratorOpen(false); // Close modal after applying
   };
 
-  const isInfoPage = ['KERNEL_ARCHITECTURE', 'SYSTEM_MODEL', 'CORE_CONCEPTS', 'PROJECT_LORE', 'FRAMEWORK'].includes(simulationMode);
+  const isInfoPage = ['SYSTEM_ARCHITECTURE', 'PROJECT_LORE', 'FRAMEWORK'].includes(simulationMode);
   const isControlDisabled = running || isInfoPage || isPlaybackMode;
   const isInterconnectDisabled = isControlDisabled;
 
@@ -163,12 +162,10 @@ const App: React.FC = () => {
             return <SignalPathways lattice={displayLattice} prevLattice={displayPrevLattice} interconnects={interconnects} />;
         case 'GLYPH_MAP':
             return <GlyphMap map={glyphMap} bmu={glyphBmu} currentInput={displayLattice.flat(2)} iteration={glyphIteration} />;
-        case 'KERNEL_ARCHITECTURE':
-            return <KernelArchitecture coreGrid={coreGrid} kernelFace={kernelFace} />;
-        case 'SYSTEM_MODEL':
-            return <SystemModel />;
-        case 'CORE_CONCEPTS':
-            return <CoreConcepts />;
+        case 'PHYSICS_EVAL':
+            return <PhysicsEngine metrics={metrics} lattice={lattice} running={running} />;
+        case 'SYSTEM_ARCHITECTURE':
+            return <SystemArchitecture coreGrid={coreGrid} kernelFace={kernelFace} />;
         case 'PROJECT_LORE':
             return <ProjectLore />;
         case 'FRAMEWORK':
@@ -178,23 +175,44 @@ const App: React.FC = () => {
     }
   }
 
+  // Define explicitly which modes show the control panel based on user request
+  const CONTROLS_VISIBLE_MODES: SimulationMode[] = [
+      'PHYSICS_EVAL',       // Physics
+      'VOLUMETRIC_LATTICE', // Qube
+      'CYCLIC_MANIFOLD',    // Face
+      'MICRO_KERNEL',       // Core
+      'SIGNAL_PATHWAYS',    // Signal
+      'PATTERN_GENERATOR'   // Pattern
+  ];
+
+  const shouldShowControls = CONTROLS_VISIBLE_MODES.includes(simulationMode);
+
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4">
-        <header className="relative text-center mb-2 w-full fade-in-component py-2">
-          <div className="absolute top-1/2 left-0 -translate-y-1/2">
-            <h2 className="text-lg sm:text-xl font-orbitron font-bold text-cyan-400/80 tracking-widest" style={{textShadow: '0 0 8px rgba(0, 170, 255, 0.5)'}}>CYCLARIO</h2>
+      <div className="min-h-screen flex flex-col items-center justify-start p-2 sm:p-4 text-slate-300">
+        <header className="relative text-center mb-4 w-full py-4 border-b border-slate-800 bg-slate-900/50">
+          <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row items-center justify-between px-4">
+            <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-sm flex items-center justify-center font-bold text-white text-xl font-orbitron">C</div>
+                <div className="text-left">
+                    <h1 className="text-xl font-orbitron font-bold text-slate-100 tracking-wider">
+                        CYCLARIO
+                    </h1>
+                    <p className="text-slate-400 text-xs font-mono uppercase tracking-widest">Photonic IC Simulator v4.1</p>
+                </div>
+            </div>
+            <div className="mt-2 md:mt-0 flex gap-4 text-xs font-mono text-slate-500">
+                <span>SUBSTRATE: Si/SiO2</span>
+                <span>WAVEGUIDE: Si3N4</span>
+                <span>MODULATOR: LiNbO3</span>
+            </div>
           </div>
-          <h1 className="text-3xl md:text-5xl font-orbitron font-bold text-cyan-300 tracking-wider holographic-title">
-            RECURRENT AUTOMATON
-          </h1>
-          <p className="text-cyan-500/80 mt-1 text-sm md:text-base">TOROIDAL LOGIC SIMULATOR v4.0</p>
         </header>
         
         <main className="w-full max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-[320px_1fr] items-start gap-4">
           
           {/* Left Column */}
-          <div className="w-full flex-shrink-0 order-2 lg:order-1 flex flex-col gap-4 fade-in-component" style={{ animationDelay: '0.2s' }}>
+          <div className="w-full flex-shrink-0 order-2 lg:order-1 flex flex-col gap-4">
             <PhaseScope metricsHistory={metricsHistory} />
             <GlobalSettingsPanel 
                 settings={globalSettings} 
@@ -222,17 +240,23 @@ const App: React.FC = () => {
 
           {/* Center Column */}
           <div className="flex-grow flex flex-col items-center order-1 lg:order-2 w-full">
-               <div className="w-full interface-selector-container">
+               <div className="w-full interface-selector-container mb-4">
                     <InterfaceSelector currentMode={simulationMode} onModeChange={handleModeChange} />
                </div>
-              <div className="relative component-panel rounded-lg p-2 w-full min-h-[60vh] flex items-center justify-center lattice-container">
-                  <div className="relative scanlines overflow-hidden rounded-md w-full h-full">
+              <div className="relative component-panel rounded-sm p-4 w-full min-h-[60vh] flex items-center justify-center lattice-container bg-slate-950">
+                  <div className="relative w-full h-full flex items-center justify-center">
                       {renderVisualization()}
                   </div>
               </div>
-              {!isInfoPage && (
+              
+              {/* Consolidated Control Panel Logic */}
+              {shouldShowControls && (
                 <div className="w-full mt-4 flex flex-col items-center controls-container gap-4">
-                    <Metrics metrics={displayMetrics} history={metricsHistory} />
+                    {/* Hide standard metrics on Physics page as it has its own dashboard */}
+                    {simulationMode !== 'PHYSICS_EVAL' && (
+                        <Metrics metrics={displayMetrics} history={metricsHistory} />
+                    )}
+                    
                     <Controls
                         onStart={onStart}
                         onStop={onStop}
@@ -269,12 +293,16 @@ const App: React.FC = () => {
                         onScrub={handleScrub}
                         onExitPlayback={handleExitPlayback}
                     />
-                    <LiveAnalysis 
-                      isRunning={running} 
-                      metricsHistory={metricsHistory} 
-                      coreGrid={coreGrid}
-                      physicsModel={physicsModel}
-                    />
+                    
+                    {/* Live Analysis usually sits at bottom, show on pages with controls except physics which has it's own stats */}
+                    {simulationMode !== 'PHYSICS_EVAL' && (
+                        <LiveAnalysis 
+                            isRunning={running} 
+                            metricsHistory={metricsHistory} 
+                            coreGrid={coreGrid}
+                            physicsModel={physicsModel}
+                        />
+                    )}
                 </div>
               )}
           </div>

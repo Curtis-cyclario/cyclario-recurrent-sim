@@ -35,15 +35,14 @@ export type SimulationMode =
   | 'CYCLIC_MANIFOLD' 
   | 'VOLUMETRIC_LATTICE' 
   | 'QUANTIZATION_FIELD' 
-  | 'KERNEL_ARCHITECTURE' 
-  | 'SYSTEM_MODEL' 
-  | 'CORE_CONCEPTS' 
+  | 'SYSTEM_ARCHITECTURE'
   | 'PROJECT_LORE' 
   | 'FRAMEWORK' 
   | 'ENTROPY_MODE' 
   | 'PATTERN_GENERATOR' 
   | 'SIGNAL_PATHWAYS' 
-  | 'GLYPH_MAP';
+  | 'GLYPH_MAP'
+  | 'PHYSICS_EVAL';
 
 export interface GlyphNode {
   weights: number[];

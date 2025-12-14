@@ -6,6 +6,7 @@ interface SparklineProps {
   width?: number;
   height?: number;
   color?: string;
+  className?: string;
 }
 
 export const Sparkline: React.FC<SparklineProps> = ({
@@ -13,6 +14,7 @@ export const Sparkline: React.FC<SparklineProps> = ({
   width = 80,
   height = 30,
   color = '#00aaff',
+  className = '',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -48,5 +50,5 @@ export const Sparkline: React.FC<SparklineProps> = ({
 
   }, [data, width, height, color]);
 
-  return <canvas ref={canvasRef} width={width} height={height} className="ml-4" />;
+  return <canvas ref={canvasRef} width={width} height={height} className={className} />;
 };

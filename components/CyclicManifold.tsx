@@ -14,6 +14,11 @@ interface CyclicManifoldProps {
 const CANVAS_SIZE = 540;
 const CELL_SIZE = CANVAS_SIZE / SIZE;
 
+// Technical colors for CAD view
+const WAVEGUIDE_COLOR = '#1e293b'; // Slate 800
+const ACTIVE_PULSE_COLOR = '#38bdf8'; // Sky 400
+const INTERCONNECT_ACTIVE_COLOR = '#eab308'; // Yellow 500 (Gold)
+
 export const CyclicManifold: React.FC<CyclicManifoldProps> = (props) => {
   const { lattice, kernelFace, onCellClick, showBorders, interconnects } = props;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -24,34 +29,26 @@ export const CyclicManifold: React.FC<CyclicManifoldProps> = (props) => {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // --- RENDER PIPELINE ---
-
-    // 1. Temporal Fade (The "Trail" Effect)
-    // Instead of ctx.clearRect, we draw a semi-transparent rectangle over the previous frame.
-    // This creates the motion blur/trail effect essential for high-speed visualization.
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(2, 6, 23, 0.25)'; // Very dark slate with low opacity
+    // 1. Background (Substrate)
+    ctx.fillStyle = '#0f172a'; // Slate 900 (Si substrate)
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     const depth = lattice[0][0].length;
 
-    // 2. Draw Grid (Base Structure)
+    // 2. Grid / Waveguide Paths
     if (showBorders) {
-        ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)'; // Subtle grid
+        ctx.strokeStyle = '#334155'; // Slate 700
         ctx.lineWidth = 1;
         ctx.beginPath();
         for (let i = 0; i <= SIZE; i++) {
-            const p = Math.floor(i * CELL_SIZE) + 0.5; // Snap to pixel grid
+            const p = Math.floor(i * CELL_SIZE) + 0.5;
             ctx.moveTo(0, p); ctx.lineTo(CANVAS_SIZE, p);
             ctx.moveTo(p, 0); ctx.lineTo(p, CANVAS_SIZE);
         }
         ctx.stroke();
     }
 
-    // 3. Draw Cells (Additive Light Layer)
-    // We use 'lighter' composite operation to simulate light adding up.
-    ctx.globalCompositeOperation = 'lighter';
-
+    // 3. Cells (Resonators)
     for (let i = 0; i < SIZE; i++) {
         for (let j = 0; j < SIZE; j++) {
             const stack = lattice[i][j];
@@ -63,99 +60,68 @@ export const CyclicManifold: React.FC<CyclicManifoldProps> = (props) => {
             const gateType = kernelFace[i][j];
             const x = j * CELL_SIZE;
             const y = i * CELL_SIZE;
-            const cx = x + CELL_SIZE / 2;
-            const cy = y + CELL_SIZE / 2;
+            
+            // Render "Socket" / Inactive Resonator
+            ctx.fillStyle = '#1e293b'; // Dark waveguide slot
+            const pad = 2;
+            ctx.fillRect(x + pad, y + pad, CELL_SIZE - pad*2, CELL_SIZE - pad*2);
 
             if (activeLayers > 0) {
-                // -- Active Cell Styling --
+                // Active State: SiNi/LiNbO3 Mode
                 const intensity = activeLayers / depth;
-                const baseColor = COLORS[gateType] || '#fff';
                 
-                // A. The Glow (Halo)
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = baseColor;
-                ctx.fillStyle = baseColor;
-                
-                // Draw the main body
-                const bodySize = CELL_SIZE * 0.85;
-                const offset = (CELL_SIZE - bodySize) / 2;
-                ctx.fillRect(x + offset, y + offset, bodySize, bodySize);
+                // Use distinct colors based on gate type for debugging/engineering view
+                // But keep them technical (less neon)
+                const techColor = COLORS[gateType]; 
 
-                // B. The "Hot Core" (White center indicates high energy)
-                // This makes it readable even when moving fast
-                ctx.shadowBlur = 0;
+                // Draw solid active block (Mode Volume)
+                ctx.fillStyle = techColor;
+                const activeSize = (CELL_SIZE - pad*2) * 0.9;
+                const offset = (CELL_SIZE - activeSize) / 2;
+                ctx.fillRect(x + offset, y + offset, activeSize, activeSize);
+                
+                // Draw inner brightness (Peak Intensity)
                 ctx.fillStyle = '#ffffff';
-                const coreSize = bodySize * (0.3 + intensity * 0.4);
+                ctx.globalAlpha = 0.4 + (intensity * 0.6);
+                const coreSize = activeSize * 0.4;
                 const coreOffset = (CELL_SIZE - coreSize) / 2;
                 ctx.fillRect(x + coreOffset, y + coreOffset, coreSize, coreSize);
-
+                ctx.globalAlpha = 1.0;
             } else {
-                // -- Inactive Cell Styling (Structure) --
-                // Switch back to source-over for non-glowing elements to avoid blowing out the image
-                ctx.globalCompositeOperation = 'source-over';
-                
-                const inactiveColor = INACTIVE_COLORS[gateType] || '#111';
-                ctx.fillStyle = inactiveColor;
-                
-                // Draw a small "socket" or "via" to show potential connectivity
-                const socketSize = 4;
-                ctx.fillRect(cx - socketSize/2, cy - socketSize/2, socketSize, socketSize);
-                
-                // Restore additive for next active cell
-                ctx.globalCompositeOperation = 'lighter';
+                // Label gate type subtly
+                ctx.fillStyle = '#334155';
+                const markerSize = 4;
+                ctx.fillRect(x + CELL_SIZE/2 - markerSize/2, y + CELL_SIZE/2 - markerSize/2, markerSize, markerSize);
             }
         }
     }
 
-    // 4. Draw Interconnects (Laser Beams)
-    // Drawn on top with high intensity
+    // 4. Interconnects (Bus Waveguides)
     if (interconnects) {
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'butt';
+        ctx.lineWidth = 3;
+        const busColor = INTERCONNECT_ACTIVE_COLOR;
 
-        // Rows (Horizontal Lasers)
+        // Rows
         interconnects.rows.forEach((isActive, index) => {
             if (isActive) {
                 const y = (INTERCONNECT_CHANNELS[index] + 0.5) * CELL_SIZE;
-                
-                // Outer Glow
-                ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#ff00ff';
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_SIZE, y); ctx.stroke();
-
-                // Inner Beam (White hot)
-                ctx.strokeStyle = '#fff';
-                ctx.shadowBlur = 2;
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = busColor;
+                ctx.globalAlpha = 0.8;
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_SIZE, y); ctx.stroke();
             }
         });
 
-        // Cols (Vertical Lasers)
+        // Cols
         interconnects.cols.forEach((isActive, index) => {
             if (isActive) {
                 const x = (INTERCONNECT_CHANNELS[index] + 0.5) * CELL_SIZE;
-                
-                // Outer Glow
-                ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = '#00ffff';
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_SIZE); ctx.stroke();
-
-                // Inner Beam
-                ctx.strokeStyle = '#fff';
-                ctx.shadowBlur = 2;
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = busColor;
+                ctx.globalAlpha = 0.8;
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_SIZE); ctx.stroke();
             }
         });
+        ctx.globalAlpha = 1.0;
     }
-
-    // Reset Context
-    ctx.shadowBlur = 0;
-    ctx.globalCompositeOperation = 'source-over';
 
   }, [lattice, kernelFace, showBorders, interconnects]);
 
@@ -173,20 +139,15 @@ export const CyclicManifold: React.FC<CyclicManifoldProps> = (props) => {
   };
 
   return (
-    <div style={{ position: 'relative', width: CANVAS_SIZE, height: CANVAS_SIZE }} className="mx-auto block max-w-full h-auto shadow-2xl shadow-cyan-900/20 rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+    <div style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }} className="mx-auto block max-w-full h-auto border border-slate-700 bg-slate-900 rounded-sm overflow-hidden">
         <canvas
             ref={canvasRef}
             width={CANVAS_SIZE}
             height={CANVAS_SIZE}
             onClick={handleClick}
-            style={{ cursor: 'pointer' }}
-            aria-label="High-Velocity Cyclic Manifold Visualization"
+            style={{ cursor: 'crosshair' }}
+            aria-label="Schematic View of Photonic Lattice"
         />
-        {/* Subtle overlay vignette for depth */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-            background: 'radial-gradient(circle at center, transparent 60%, rgba(2, 6, 23, 0.6) 100%)'
-        }}></div>
     </div>
   );
 };
-    
