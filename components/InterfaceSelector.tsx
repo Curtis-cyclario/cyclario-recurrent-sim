@@ -9,30 +9,30 @@ interface InterfaceSelectorProps {
 }
 
 const primarySimModes: { id: SimulationMode; name: string; description: string }[] = [
-  { id: 'MICRO_KERNEL', name: 'CORE', description: 'Unified Gate Array: The 3x3 core kernel logic.' },
-  { id: 'CYCLIC_MANIFOLD', name: 'FACE', description: 'Recursive 9x9: The bilinearly-mirrored 9x9x3 toroidal lattice.' },
-  { id: 'VOLUMETRIC_LATTICE', name: 'QUBE', description: 'QubeIt 9x9x9: Volumetric 9x9x9 computation in 3D.' },
-  { id: 'QUANTIZATION_FIELD', name: 'QUANT', description: "Quadratic Quantisation: Abstract macro-dynamic visualization." },
+  { id: 'MICRO_KERNEL', name: 'CORE', description: 'Kernel Processor: The 3x3 core gate logic.' },
+  { id: 'CYCLIC_MANIFOLD', name: 'FACE', description: 'Planar Array: The mirrored 9x9 toroidal lattice.' },
+  { id: 'VOLUMETRIC_LATTICE', name: 'QUBE', description: 'Volumetric Stack: 3D computation in 9x9x6 space.' },
+  { id: 'QUANTIZATION_FIELD', name: 'HELIOS', description: "Heliostat Engine: Concentric quantization shells." },
 ];
 
 const secondarySimModes: { id: SimulationMode; name: string; description: string }[] = [
-  { id: 'ENTROPY_MODE', name: 'ENTROPY', description: 'System Disorder: Visualizes entropy via the Swastika metric (Δs).' },
-  { id: 'SIGNAL_PATHWAYS', name: 'SIGNAL', description: 'Pathways: Visualizes signal propagation and causal connections.' },
-  { id: 'PATTERN_GENERATOR', name: 'PATTERN', description: 'Generates complex, repeatable patterns based on kernel evolution.' },
-  { id: 'GLYPH_MAP', name: 'GLYPH', description: 'Self-Organizing Map: Cluster activation patterns into glyphs.' },
+  { id: 'ENTROPY_MODE', name: 'ENTROPY', description: 'Entropy Refractor: Spectral refractive distortion (Δs).' },
+  { id: 'SIGNAL_PATHWAYS', name: 'PATHWAY', description: 'Pathways Monitor: Causal propagation links.' },
+  { id: 'PATTERN_GENERATOR', name: 'GEN_VIS', description: 'Pattern History: Temporal evolution trails.' },
+  { id: 'GLYPH_MAP', name: 'GLYPH', description: 'Signal SOM: Latent clustering of lattice states.' },
 ];
 
 const physicsMode: { id: SimulationMode; name: string; description: string } = 
-  { id: 'PHYSICS_EVAL', name: 'PHYSICS', description: 'Hardcore Evaluation: Phlop counters, governing equations, and optical power metrics.' };
+  { id: 'PHYSICS_EVAL', name: 'PHYSICS', description: 'Hardcore Evaluation: Phlop counters and PIC diagnostics.' };
 
 
 const infoModesTop: { id: SimulationMode; name: string; description: string }[] = [
-  { id: 'SYSTEM_ARCHITECTURE', name: 'ARCHITECTURE', description: 'Unified System Specification: Kernel topology, mathematical model, and core concepts.' },
+  { id: 'SYSTEM_ARCHITECTURE', name: 'SPEC', description: 'Unified Architecture: Kernel topology and math model.' },
 ];
 
 const infoModesBottom: { id: SimulationMode; name: string; description: string }[] = [
-    { id: 'PROJECT_LORE', name: 'LORE', description: 'Project Lore: The background and philosophy of the Recurrent Automaton.' },
-    { id: 'FRAMEWORK', name: 'SPECS', description: 'Framework Specifications: Details on the underlying simulation framework.' },
+    { id: 'PROJECT_LORE', name: 'LORE', description: 'System Lore: The philosophy of Cyclario.' },
+    { id: 'FRAMEWORK', name: 'DOSSIER', description: 'System Dossier: Detailed DSL technical specs.' },
 ];
 
 
@@ -47,39 +47,21 @@ const SelectorButton: React.FC<{
     <Tooltip text={description}>
       <button
         onClick={onClick}
-        className={`relative w-full p-3 text-center transition-all duration-300 ease-in-out transform focus:outline-none rounded-sm group
+        className={`relative w-full group flex flex-col items-center justify-center p-2.5 transition-all duration-300 border h-full rounded-sm
           ${isActive 
-            ? 'bg-cyan-500/20 border-cyan-400/80' 
+            ? 'bg-cyan-500/15 border-cyan-400 shadow-[inset_0_0_15px_rgba(34,211,238,0.2)]' 
             : special 
-                ? 'bg-slate-900/80 border-emerald-700/50 hover:bg-slate-800 hover:border-emerald-500' 
-                : 'bg-slate-800/50 border-slate-700/70 hover:bg-slate-700/50 hover:border-slate-500'
+                ? 'bg-emerald-950/20 border-emerald-900/50 hover:bg-emerald-900/30 hover:border-emerald-500' 
+                : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800 hover:border-slate-600'
           }
-          border h-full flex items-center justify-center
           `}
       >
-        {/* Active Indicator Corner */}
-        {isActive && (
-            <>
-                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan-400" />
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-cyan-400" />
-            </>
-        )}
-        
-        {/* Hover Corners (only if not active) */}
-        {!isActive && (
-            <>
-                <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-current opacity-0 group-hover:opacity-40 transition-opacity" />
-                <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-current opacity-0 group-hover:opacity-40 transition-opacity" />
-            </>
-        )}
-
-        {isActive && <div className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00aaff]" />}
-        
-        <h4 className={`font-orbitron font-bold tracking-widest text-sm sm:text-base 
-            ${isActive ? 'text-cyan-300' : special ? 'text-emerald-500' : 'text-slate-400 group-hover:text-slate-200'}`}
+        {isActive && <div className="absolute top-0 left-0 w-full h-[2px] bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></div>}
+        <span className={`font-orbitron font-black text-[9px] sm:text-xs tracking-[0.25em] uppercase
+            ${isActive ? 'text-cyan-300 text-glow' : special ? 'text-emerald-500' : 'text-slate-500 group-hover:text-slate-300'}`}
         >
             {name}
-        </h4>
+        </span>
       </button>
     </Tooltip>
   );
@@ -87,10 +69,8 @@ const SelectorButton: React.FC<{
 
 export const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({ currentMode, onModeChange }) => {
   return (
-    <div className="w-full max-w-6xl mx-auto my-4 fade-in-component interface-selector-container" style={{ animationDelay: '0.1s' }}>
-        <div className="component-panel p-2 rounded-sm flex flex-col gap-2">
-            
-            {/* Top Row: Core, Face, Qube, Quant | Physics, Architecture */}
+    <div className="w-full max-w-6xl mx-auto my-2 interface-selector-container">
+        <div className="component-panel p-2 rounded-sm flex flex-col gap-2 bg-slate-950/60 border-slate-800">
             <div className="flex flex-col md:flex-row gap-2 h-14">
                 <div className="flex-[2] grid grid-cols-4 gap-2 h-full">
                     {primarySimModes.map(mode => (
@@ -122,8 +102,6 @@ export const InterfaceSelector: React.FC<InterfaceSelectorProps> = ({ currentMod
                     ))}
                 </div>
             </div>
-
-            {/* Bottom Row: Entropy, Signal, Pattern, Glyph | Lore, Specs */}
             <div className="flex flex-col md:flex-row gap-2 h-14">
                 <div className="flex-[2] grid grid-cols-4 gap-2 h-full">
                     {secondarySimModes.map(mode => (

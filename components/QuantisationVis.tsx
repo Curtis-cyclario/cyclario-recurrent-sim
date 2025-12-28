@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import type { MetricsData } from '../types';
 
@@ -20,7 +21,8 @@ const GRID_SIZE = 5; // Create a 5x5 grid of attractors
 export const QuantisationVis: React.FC<QuantisationVisProps> = ({ metricsHistory }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Particle[]>([]);
-  const animationFrameId = useRef<number>();
+  // Initializing with undefined to satisfy strict "useRef" argument requirements
+  const animationFrameId = useRef<number | undefined>(undefined);
   const attractorsRef = useRef<{ x: number, y: number }[]>([]);
 
   useEffect(() => {

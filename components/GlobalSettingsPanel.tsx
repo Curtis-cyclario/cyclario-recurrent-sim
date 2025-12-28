@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { GlobalSettings, PhysicsModel } from '../types';
 import { Tooltip } from './Tooltip';
@@ -12,80 +13,78 @@ interface GlobalSettingsPanelProps {
 
 export const GlobalSettingsPanel: React.FC<GlobalSettingsPanelProps> = ({ settings, onSettingsChange, isDisabled, physicsModel, onPhysicsModelChange }) => {
     return (
-        <div className="component-panel p-4 rounded-lg w-full">
-            <h3 className="text-lg font-orbitron font-bold text-cyan-300 mb-4 text-center tracking-wider">
-                GLOBAL SETTINGS
-            </h3>
-            <div className={`flex flex-col gap-4 transition-opacity ${isDisabled ? 'opacity-50' : ''}`}>
+        <div className="component-panel p-5 rounded-sm w-full bg-slate-900/40">
+            <div className="flex items-center justify-between mb-6">
+                <span className="hud-label text-cyan-400">GLOBAL_CONFIG</span>
+                <span className="font-mono text-[8px] text-slate-600">ID: P-042</span>
+            </div>
+            
+            <div className={`flex flex-col gap-6 transition-opacity ${isDisabled ? 'opacity-30' : ''}`}>
                 
                  <div className="flex flex-col gap-2">
-                    <Tooltip text="Changes the core evaluation formula for the simulation.">
-                        <label htmlFor="physics-model" className="text-xs text-cyan-400/70 tracking-widest uppercase cursor-help">Physics Model</label>
+                    <Tooltip text="Governing Phase Laws">
+                        <label className="hud-label opacity-60">Physics Model</label>
                     </Tooltip>
                     <select 
-                        id="physics-model" 
                         value={physicsModel}
                         onChange={(e) => onPhysicsModelChange(e.target.value as PhysicsModel)}
                         disabled={isDisabled}
-                        className="bg-slate-800 border border-slate-600 text-white text-sm rounded-md focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 transition-colors duration-200 disabled:opacity-50"
+                        className="bg-slate-950 border border-slate-800 text-cyan-300 text-[9px] font-orbitron font-bold tracking-widest rounded-sm focus:border-cyan-500 block w-full p-2.5 disabled:opacity-20 appearance-none cursor-pointer"
                     >
-                        <option value="standard">Standard</option>
-                        <option value="lagrangian">Lagrangian</option>
-                        <option value="wave_dynamics">Wave Dynamics</option>
+                        <option value="standard">STANDARD_REFRACTION</option>
+                        <option value="lagrangian">LAGRANGIAN_ENERGY</option>
+                        <option value="wave_dynamics">WAVE_INTERFERENCE</option>
                     </select>
                 </div>
                 
                 <div className="flex flex-col gap-2">
-                    <Tooltip text="Number of previous simulation states that influence the next state. Higher values increase complexity.">
-                        <label htmlFor="recurrence-depth" className="text-xs text-cyan-400/70 tracking-widest uppercase cursor-help">Recurrence Depth</label>
+                    <Tooltip text="Temporal Recursive Factor">
+                        <label className="hud-label opacity-60">Memory Depth</label>
                     </Tooltip>
                     <select 
-                        id="recurrence-depth" 
                         value={settings.recurrenceDepth}
                         onChange={(e) => onSettingsChange('recurrenceDepth', parseInt(e.target.value, 10))}
                         disabled={isDisabled}
-                        className="bg-slate-800 border border-slate-600 text-white text-sm rounded-md focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 transition-colors duration-200 disabled:opacity-50"
+                        className="bg-slate-950 border border-slate-800 text-cyan-300 text-[9px] font-orbitron font-bold tracking-widest rounded-sm focus:border-cyan-500 block w-full p-2.5 disabled:opacity-20 appearance-none cursor-pointer"
                     >
-                        <option value="1">1 (Standard)</option>
-                        <option value="2">2 (Deep)</option>
+                        <option value="1">L1: ITERATIVE</option>
+                        <option value="2">L2: RECURSIVE</option>
                     </select>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <Tooltip text="Controls the spawn rate of particles visualizing edge communication.">
-                        <div className="flex justify-between items-baseline">
-                            <label htmlFor="particle-density" className="text-xs text-cyan-400/70 tracking-widest uppercase cursor-help">Particle Density</label>
-                            <span className="text-sm font-orbitron text-cyan-300">{settings.particleDensity.toFixed(2)}</span>
+                <div className="flex flex-col gap-3">
+                    <Tooltip text="Inter-gate photon density">
+                        <div className="flex justify-between items-end">
+                            <label className="hud-label opacity-60">Photon Density</label>
+                            <span className="font-orbitron font-black text-[10px] text-cyan-400">{(settings.particleDensity * 100).toFixed(0)}%</span>
                         </div>
                     </Tooltip>
                     <input 
-                        id="particle-density" 
                         type="range" 
                         min="0" max="0.2" step="0.01" 
                         value={settings.particleDensity}
                         onChange={(e) => onSettingsChange('particleDensity', parseFloat(e.target.value))}
                         disabled={isDisabled}
-                        aria-label="Particle density slider"
+                        className="w-full"
                     />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                     <Tooltip text="Adjusts the bloom effect intensity for active cells.">
-                        <div className="flex justify-between items-baseline">
-                            <label htmlFor="glow-intensity" className="text-xs text-cyan-400/70 tracking-widest uppercase cursor-help">Glow Intensity</label>
-                            <span className="text-sm font-orbitron text-cyan-300">{settings.glowIntensity.toFixed(1)}</span>
+                <div className="flex flex-col gap-3">
+                     <Tooltip text="Lattice emission amplitude">
+                        <div className="flex justify-between items-end">
+                            <label className="hud-label opacity-60">Bloom Intensity</label>
+                            <span className="font-orbitron font-black text-[10px] text-cyan-400">{(settings.glowIntensity * 100).toFixed(0)}%</span>
                         </div>
                     </Tooltip>
                     <input 
-                        id="glow-intensity" 
                         type="range" 
                         min="0" max="1.5" step="0.1" 
                         value={settings.glowIntensity}
                         onChange={(e) => onSettingsChange('glowIntensity', parseFloat(e.target.value))}
-                        aria-label="Glow intensity slider"
+                        disabled={isDisabled}
+                        className="w-full"
                     />
                 </div>
-
             </div>
         </div>
     );

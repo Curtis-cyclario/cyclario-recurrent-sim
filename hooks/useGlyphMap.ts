@@ -5,16 +5,17 @@ import { SIZE, DEPTH } from '../constants';
 
 const MAP_DIMENSION = 10;
 const INPUT_DIMENSION = SIZE * SIZE * DEPTH;
-const TOTAL_ITERATIONS = 2000;
-const INITIAL_LEARNING_RATE = 0.5;
-const INITIAL_RADIUS = MAP_DIMENSION / 2;
+const TOTAL_ITERATIONS = 5000; // Increased for smoother convergence
+const INITIAL_LEARNING_RATE = 0.3; // Slower, more persistent learning
+const INITIAL_RADIUS = MAP_DIMENSION / 1.5;
 
 const createInitialMap = (): GlyphMapData => {
   const map: GlyphMapData = [];
   for (let i = 0; i < MAP_DIMENSION; i++) {
     const row: GlyphNode[] = [];
     for (let j = 0; j < MAP_DIMENSION; j++) {
-      const weights = Array.from({ length: INPUT_DIMENSION }, () => Math.random());
+      // Initialize with a bit more structure (slight spatial bias)
+      const weights = Array.from({ length: INPUT_DIMENSION }, () => Math.random() * 0.1);
       row.push({ weights, x: i, y: j });
     }
     map.push(row);
@@ -42,9 +43,13 @@ export const useGlyphMap = () => {
     let bestNode: GlyphNode | null = null;
     let minDistance = Infinity;
 
+    // 1. Find BMU
     for (const row of map) {
       for (const node of row) {
-        const distance = node.weights.reduce((sum, weight, i) => sum + (weight - inputVector[i]) ** 2, 0);
+        let distance = 0;
+        for (let i = 0; i < INPUT_DIMENSION; i++) {
+            distance += (node.weights[i] - inputVector[i]) ** 2;
+        }
         if (distance < minDistance) {
           minDistance = distance;
           bestNode = node;
@@ -55,26 +60,25 @@ export const useGlyphMap = () => {
     if (!bestNode) return;
     setBmu({ x: bestNode.x, y: bestNode.y });
 
+    // 2. Update weights with persistence
     const radiusSquared = neighborhoodRadius ** 2;
-    const newMap = map.map(row => row.map(node => ({ ...node, weights: [...node.weights] })));
-
-    for (let i = 0; i < MAP_DIMENSION; i++) {
-      for (let j = 0; j < MAP_DIMENSION; j++) {
-        const node = newMap[i][j];
-        const distToBmuSquared = (bestNode.x - node.x) ** 2 + (bestNode.y - node.y) ** 2;
-
+    const newMap = map.map(row => row.map(node => {
+        const distToBmuSquared = (bestNode!.x - node.x) ** 2 + (bestNode!.y - node.y) ** 2;
+        
         if (distToBmuSquared < radiusSquared) {
           const influence = Math.exp(-distToBmuSquared / (2 * radiusSquared));
+          const updatedWeights = [...node.weights];
           for (let w = 0; w < INPUT_DIMENSION; w++) {
-            node.weights[w] += influence * learningRate * (inputVector[w] - node.weights[w]);
+            updatedWeights[w] += influence * learningRate * (inputVector[w] - updatedWeights[w]);
           }
+          return { ...node, weights: updatedWeights };
         }
-      }
-    }
+        return node;
+    }));
 
     setMap(newMap);
     setIteration(prev => prev + 1);
-  }, [map, learningRate, neighborhoodRadius, iteration]);
+  }, [map, learningRate, neighborhoodRadius]);
 
   return { map, bmu, iteration, trainStep, resetGlyphMap };
 };

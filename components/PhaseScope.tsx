@@ -92,7 +92,8 @@ const MetricDisplay: React.FC<{ title: string; value: string; history: number[];
 
 export const PhaseScope: React.FC<PhaseScopeProps> = ({ metricsHistory }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameId = useRef<number>();
+  // Initializing with undefined to satisfy strict "useRef" argument requirements
+  const animationFrameId = useRef<number | undefined>(undefined);
 
   const latestMetrics = metricsHistory[metricsHistory.length - 1] || { delta_swastika: 0, latency: 0, energy: 0, thermalLoad: 0 };
 

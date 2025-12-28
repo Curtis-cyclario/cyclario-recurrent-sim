@@ -8,27 +8,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"
-  }
-}
-</script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Roboto+Mono:wght@300;400;700&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://aistudiocdn.com/react@^19.1.1/",
+        "react": "https://aistudiocdn.com/react@^19.1.1",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+        "react-dom": "https://aistudiocdn.com/react-dom@^19.1.1",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0"
+      }
+    }
+    </script>
     <style>
       :root {
-        --bg-color: #020617; /* Slate 950 */
-        --panel-bg: #0f172a; /* Slate 900 */
-        --border-color: #334155; /* Slate 700 */
-        --accent-primary: #3b82f6; /* Blue 500 */
-        --accent-secondary: #0ea5e9; /* Sky 500 */
-        --text-primary: #f8fafc; /* Slate 50 */
-        --text-secondary: #94a3b8; /* Slate 400 */
+        --bg-color: #020617; 
+        --panel-bg: rgba(7, 12, 28, 0.85);
+        --border-color: rgba(30, 41, 59, 0.6);
+        --accent-primary: #22d3ee; 
+        --accent-secondary: #818cf8;
+        --text-primary: #f8fafc;
+        --text-secondary: #64748b;
+        --glow-strength: 0 0 12px rgba(34, 211, 238, 0.4);
       }
 
       body {
@@ -39,103 +40,131 @@
         -webkit-font-smoothing: antialiased;
       }
       
-      /* Subtle Engineering Grid Background */
+      /* Atmosphere Layering */
       body::before {
         content: '';
         position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
+        inset: 0;
         background-image: 
-          linear-gradient(rgba(51, 65, 85, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(51, 65, 85, 0.1) 1px, transparent 1px);
-        background-size: 20px 20px;
+          radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.08) 0%, transparent 70%),
+          linear-gradient(rgba(51, 65, 85, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(51, 65, 85, 0.05) 1px, transparent 1px);
+        background-size: 100% 100%, 40px 40px, 40px 40px;
         z-index: -2;
         pointer-events: none;
+      }
+
+      /* Moving Grid for subtle activity */
+      body::after {
+        content: '';
+        position: fixed;
+        inset: -100%;
+        background-image: radial-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        z-index: -1;
+        opacity: 0.5;
+        animation: grid-move 60s linear infinite;
+      }
+
+      @keyframes grid-move {
+        from { transform: translateY(0); }
+        to { transform: translateY(40px); }
       }
 
       .font-mono { font-family: 'Roboto Mono', monospace; }
       .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-      /* Utility Classes for Engineering UI */
+      /* Technical Brackets for UI Sections */
       .component-panel {
-          background-color: var(--panel-bg);
+          background: var(--panel-bg);
+          backdrop-filter: blur(24px);
           border: 1px solid var(--border-color);
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-      }
-
-      .btn-technical {
-        border-radius: 2px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-family: 'Roboto Mono', monospace;
-        transition: all 0.15s ease;
+          position: relative;
+          transition: border-color 0.4s ease;
+          border-radius: 4px;
+          box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
       }
       
-      .fade-in-component {
-        animation: fadeIn 0.3s ease-out forwards;
-      }
-      
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-
-      /* Custom Range Slider for Precision Control */
-      input[type="range"] {
-        -webkit-appearance: none;
-        background: transparent;
-        height: 1.5rem;
-      }
-      input[type="range"]::-webkit-slider-runnable-track {
-        background: #334155;
-        height: 2px;
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        margin-top: -6px;
-        background-color: #94a3b8;
-        height: 14px;
-        width: 6px;
-        border-radius: 1px;
-        border: 1px solid #e2e8f0;
-        transition: background-color 0.2s;
-      }
-      input[type="range"]:hover::-webkit-slider-thumb {
-        background-color: #fff;
-      }
-      
-      /* Technical Select */
-      select {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
-        background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
-        padding-right: 2.5rem;
-      }
-
-      /* Scrollbars */
-      ::-webkit-scrollbar {
+      .component-panel::before, .component-panel::after {
+        content: '';
+        position: absolute;
         width: 8px;
         height: 8px;
+        pointer-events: none;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
       }
-      ::-webkit-scrollbar-track {
-        background: #0f172a; 
+
+      .component-panel::before {
+        top: -1px; left: -1px;
+        border-top: 1px solid var(--accent-primary);
+        border-left: 1px solid var(--accent-primary);
       }
-      ::-webkit-scrollbar-thumb {
-        background: #334155; 
-        border-radius: 4px;
+
+      .component-panel::after {
+        bottom: -1px; right: -1px;
+        border-bottom: 1px solid var(--accent-primary);
+        border-right: 1px solid var(--accent-primary);
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #475569; 
+
+      .component-panel:hover {
+          border-color: rgba(34, 211, 238, 0.3);
       }
-      
-      /* Remove old classes if they exist in markup to prevent glitches */
-      .scanlines, .holographic-title, .text-glow {
-        display: block; /* just ensure they don't hide content */
-        animation: none !important;
-        text-shadow: none !important;
-        box-shadow: none !important;
+
+      .component-panel:hover::before, .component-panel:hover::after {
+          opacity: 1;
       }
-      .scanlines::after { display: none; }
+
+      .text-glow {
+        text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
+      }
+
+      /* Scanlines */
+      .scanlines::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+          background-size: 100% 4px, 3px 100%;
+          pointer-events: none;
+          z-index: 10;
+          opacity: 0.15;
+      }
+
+      .hud-label {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 900;
+        letter-spacing: 0.3em;
+        color: var(--accent-secondary);
+        text-transform: uppercase;
+        display: block;
+      }
+
+      .hud-header {
+          font-family: 'Orbitron', sans-serif;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          background: linear-gradient(to right, #fff, var(--text-secondary));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+      }
+
+      /* Industrial Scrollbar */
+      ::-webkit-scrollbar { width: 3px; height: 3px; }
+      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+      ::-webkit-scrollbar-thumb { background: var(--border-color); }
+      ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+
+      /* Animation for entry */
+      .fade-in-component {
+          animation: comp-fade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      @keyframes comp-fade {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
     </style>
   </head>
   <body>

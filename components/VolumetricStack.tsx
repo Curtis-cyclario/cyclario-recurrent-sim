@@ -1,9 +1,9 @@
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import type { Lattice3D } from '../types';
-import { SIZE, COLORS, INTERCONNECT_CHANNELS } from '../constants';
+import { SIZE, COLORS, INTERCONNECT_CHANNELS, DEPTH } from '../constants';
 
-interface VolumetricLatticeProps {
+interface VolumetricStackProps {
   lattice: Lattice3D;
   kernelFace: number[][];
   glowIntensity: number;
@@ -14,14 +14,13 @@ const CUBE_SIZE = 280;
 const CELL_SPACING = CUBE_SIZE / (SIZE - 1);
 const FOV = 600;
 
-export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, kernelFace, glowIntensity, interconnects }) => {
+export const VolumetricStack: React.FC<VolumetricStackProps> = ({ lattice, kernelFace, glowIntensity, interconnects }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [rotation, setRotation] = useState({ x: 0.5, y: -0.5 });
   const [zoom, setZoom] = useState(1.0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isDragging = useRef<'rotate' | 'pan' | null>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
-  // Initializing with undefined to satisfy strict "useRef" argument requirements
   const animationFrameId = useRef<number | undefined>(undefined);
 
   const corners = [
@@ -67,7 +66,7 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
       const cosY = Math.cos(rotation.y);
       const sinY = Math.sin(rotation.y);
 
-      // 1. Project and Draw Wireframe Box
+      // Wireframe Projection
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
       ctx.lineWidth = 1;
       const projCorners = new Array(8);
@@ -89,11 +88,10 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
       }
       ctx.stroke();
 
-      // 2. Project Points
+      // Point Projection
       const points = [];
-      const depth = lattice[0][0].length;
       const offset = (SIZE - 1) / 2;
-      const depthOffset = (depth - 1) / 2;
+      const depthOffset = (DEPTH - 1) / 2;
       
       for (let i = 0; i < SIZE; i++) {
         const py = (i - offset) * CELL_SPACING;
@@ -105,13 +103,13 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
             const colIndex = INTERCONNECT_CHANNELS.indexOf(j);
             const isInterconnect = rowActive || (colIndex !== -1 && interconnects.cols[colIndex]);
             
-            const stack = lattice[i][j];
             const gate = kernelFace[i][j];
             const baseColorHex = isInterconnect ? '#eab308' : (COLORS[gate] || '#38bdf8');
             const rgb = hexToRgb(baseColorHex);
 
-            for (let k = 0; k < depth; k++) {
-                if (stack[k] === 1) {
+            for (let k = 0; k < DEPTH; k++) {
+                const idx = (i * SIZE * DEPTH) + (j * DEPTH) + k;
+                if (lattice[idx] === 1) {
                     const pz = (k - depthOffset) * CELL_SPACING;
                     const x1 = px * cosY - pz * sinY;
                     const z1 = px * sinY + pz * cosY;
@@ -132,10 +130,8 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
         }
       }
 
-      // Sort points for proper depth transparency
       points.sort((a, b) => b.z - a.z);
 
-      // 3. Render
       ctx.globalCompositeOperation = 'lighter';
       for(let i=0; i<points.length; i++) {
           const p = points[i];
@@ -159,14 +155,6 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
       }
       ctx.globalCompositeOperation = 'source-over';
 
-      // Navigation HUD
-      ctx.fillStyle = 'rgba(34, 211, 238, 0.4)';
-      ctx.font = '900 8px "Orbitron"';
-      ctx.textAlign = 'left';
-      ctx.fillText(`MAGNIFICATION: ${(zoom * 100).toFixed(0)}%`, 20, canvas.height - 45);
-      ctx.fillText(`PAN_OFFSET: [${Math.round(pan.x)}, ${Math.round(pan.y)}]`, 20, canvas.height - 35);
-      ctx.fillText(`AXIS_ROT: [${(rotation.x % 6.28).toFixed(2)}, ${(rotation.y % 6.28).toFixed(2)}]`, 20, canvas.height - 25);
-
       if (!isDragging.current) {
           setRotation(prev => ({ 
             ...prev, 
@@ -183,7 +171,6 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
   }, [lattice, kernelFace, glowIntensity, interconnects, rotation, zoom, pan]); 
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Left click = rotate, Right/Middle click = pan
     isDragging.current = (e.button === 0) ? 'rotate' : 'pan';
     lastMousePos.current = { x: e.clientX, y: e.clientY };
     if (e.button !== 0) e.preventDefault();
@@ -212,16 +199,12 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
   };
 
   return (
-    <div 
-        className="w-full h-full flex items-center justify-center relative overflow-hidden bg-slate-950/30"
-        onContextMenu={(e) => e.preventDefault()}
-    >
+    <div className="w-full h-full flex items-center justify-center relative overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
       <div className="absolute top-4 right-4 flex flex-col gap-1 items-end pointer-events-none opacity-40">
           <span className="hud-label text-[7px]">Left_Drag: Rotate</span>
           <span className="hud-label text-[7px]">Right_Drag: Pan</span>
           <span className="hud-label text-[7px]">Wheel: Zoom</span>
       </div>
-      
       <canvas
         ref={canvasRef}
         width={700}
@@ -232,7 +215,6 @@ export const VolumetricLattice: React.FC<VolumetricLatticeProps> = ({ lattice, k
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        aria-label="Interactive 3D Volumetric Lattice: Rotate, Zoom, and Pan enabled."
       />
     </div>
   );

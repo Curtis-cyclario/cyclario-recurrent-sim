@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import type { Lattice3D } from '../types';
 import { SIZE, DEPTH, COLORS } from '../constants';
@@ -15,19 +16,17 @@ const FADE_OUT_DURATION = 800; // ms
 
 export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattice, kernelFace }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | undefined>(undefined);
   const historyRef = useRef<{ lattice: Lattice3D; timestamp: number }[]>([]);
 
-  // Effect to update history when the lattice prop changes
   useEffect(() => {
     const history = historyRef.current;
-    history.push({ lattice, timestamp: Date.now() });
+    history.push({ lattice: new Uint8Array(lattice), timestamp: Date.now() });
     if (history.length > TRAIL_LENGTH) {
       history.shift();
     }
   }, [lattice]);
 
-  // Effect to run the animation loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -37,13 +36,11 @@ export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattic
     const history = historyRef.current;
 
     const render = () => {
-      // Clear canvas with a semi-transparent background for a fading effect
       ctx.fillStyle = 'rgba(2, 6, 23, 0.3)';
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
       const currentTime = Date.now();
 
-      // Draw trails from historical lattice states
       history.forEach((histEntry) => {
         const { lattice: histLattice, timestamp } = histEntry;
         const age = currentTime - timestamp;
@@ -55,7 +52,7 @@ export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattic
           for (let j = 0; j < SIZE; j++) {
             let activeLayers = 0;
             for (let k = 0; k < DEPTH; k++) {
-              if (histLattice[i][j][k] === 1) {
+              if (histLattice[(i * SIZE * DEPTH) + (j * DEPTH) + k] === 1) {
                 activeLayers++;
               }
             }
@@ -73,7 +70,6 @@ export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattic
         }
       });
 
-      // Draw the most recent state more prominently on top
       ctx.globalAlpha = 1.0;
       const currentLatticeState = history[history.length - 1]?.lattice;
       if (currentLatticeState) {
@@ -81,7 +77,7 @@ export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattic
           for (let j = 0; j < SIZE; j++) {
             let activeLayers = 0;
             for (let k = 0; k < DEPTH; k++) {
-              if (currentLatticeState[i][j][k] === 1) {
+              if (currentLatticeState[(i * SIZE * DEPTH) + (j * DEPTH) + k] === 1) {
                 activeLayers++;
               }
             }
@@ -103,29 +99,16 @@ export const PatternGeneratorVis: React.FC<PatternGeneratorVisProps> = ({ lattic
         }
       }
 
-      // FIX: The animation loop was not continuing. Pass the render function to requestAnimationFrame.
       animationFrameId.current = requestAnimationFrame(render);
     };
 
-    // FIX: The animation loop was not starting. Pass the render function to requestAnimationFrame.
     animationFrameId.current = requestAnimationFrame(render);
-
-    return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
-  }, [kernelFace]); // Rerun setup if kernelFace changes colors
+    return () => { if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current); };
+  }, [kernelFace]);
 
   return (
     <div className="w-full h-full flex items-center justify-center p-4">
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_SIZE}
-        height={CANVAS_SIZE}
-        className="max-w-full max-h-full"
-        aria-label="Pattern Generator visualization showing trails of evolving cell patterns."
-      />
+      <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="max-w-full max-h-full" />
     </div>
   );
 };

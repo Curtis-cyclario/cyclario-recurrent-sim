@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GATE_NAMES, GATE_BG_COLORS, GATE_DESCRIPTIONS, KERNEL_PRESETS } from '../constants';
 import { Tooltip } from './Tooltip';
@@ -14,69 +15,64 @@ export const KernelEditor: React.FC<KernelEditorProps> = ({ coreGrid, onGridChan
     const currentPresetName = KERNEL_PRESETS.find(p => JSON.stringify(p.grid) === JSON.stringify(coreGrid))?.name || 'custom';
     
     return (
-        <div className="component-panel p-4 rounded-lg w-full">
-            <h3 className="text-lg font-orbitron font-bold text-cyan-300 mb-3 text-center tracking-wider">
-                KERNEL EDITOR
-            </h3>
+        <div className="component-panel p-5 rounded-sm w-full bg-slate-900/40">
+            <div className="flex items-center justify-between mb-5">
+                <h3 className="hud-label text-cyan-400">LOGIC_KERNEL_MATRIX</h3>
+                <span className="font-mono text-[8px] text-slate-600">3x3 ADJACENCY</span>
+            </div>
 
-            <div className="mb-3">
-                <Tooltip text="Load a predefined kernel configuration.">
-                    <label htmlFor="kernel-preset-select" className="text-xs text-cyan-400/70 tracking-widest uppercase cursor-help">
-                        Load Preset
-                    </label>
-                </Tooltip>
+            <div className="mb-6">
+                <label className="hud-label opacity-40 text-[7px] mb-1.5 ml-1">TOPOLOGY_PRESET</label>
                 <select
-                    id="kernel-preset-select"
                     value={currentPresetName}
                     onChange={(e) => {
                         const selectedPreset = KERNEL_PRESETS.find(p => p.name === e.target.value);
-                        if (selectedPreset) {
-                            const newGrid = selectedPreset.grid.map(row => [...row]);
-                            onLoadPreset(newGrid);
-                        }
+                        if (selectedPreset) onLoadPreset(selectedPreset.grid.map(row => [...row]));
                     }}
                     disabled={isDisabled}
-                    className="mt-1 bg-slate-800 border border-slate-600 text-white text-sm rounded-md focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 transition-colors duration-200 disabled:opacity-50"
-                    aria-label="Load kernel preset"
+                    className="bg-slate-950 border border-slate-800 text-cyan-300 text-[10px] font-orbitron font-bold tracking-[0.1em] rounded-sm focus:border-cyan-500 block w-full p-2.5 disabled:opacity-20 appearance-none cursor-pointer"
                 >
-                    {currentPresetName === 'custom' && <option value="custom" disabled>Custom</option>}
+                    {currentPresetName === 'custom' && <option value="custom">CUSTOM_OVERRIDE</option>}
                     {KERNEL_PRESETS.map(preset => (
-                        <option key={preset.name} value={preset.name}>{preset.name}</option>
+                        <option key={preset.name} value={preset.name}>{preset.name.toUpperCase().replace(' ', '_')}</option>
                     ))}
                 </select>
             </div>
 
-            <div className={`grid grid-cols-3 gap-2 transition-opacity ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <div className={`grid grid-cols-3 gap-2 transition-all ${isDisabled ? 'grayscale opacity-30' : ''}`}>
                 {coreGrid.map((row, i) =>
                     row.map((cell, j) => {
-                        const bgColorClass = GATE_BG_COLORS[cell as keyof typeof GATE_BG_COLORS] || 'bg-slate-800 border-slate-600';
+                        const bgColorClass = GATE_BG_COLORS[cell as keyof typeof GATE_BG_COLORS] || 'bg-slate-900 border-slate-700';
                         return (
                             <Tooltip key={`${i}-${j}`} text={GATE_DESCRIPTIONS[cell as keyof typeof GATE_DESCRIPTIONS]}>
-                                <select
-                                    value={cell}
-                                    onChange={(e) => onGridChange(i, j, parseInt(e.target.value))}
-                                    disabled={isDisabled}
-                                    className={`border text-white text-xs rounded-md focus:ring-cyan-500 focus:border-cyan-500 block w-full p-2 appearance-none text-center transition-colors duration-200 ${bgColorClass}`}
-                                    aria-label={`Kernel cell ${i},${j}`}
-                                >
-                                    {Object.entries(GATE_NAMES).map(([key, name]) => (
-                                        <option key={key} value={key} className="bg-slate-900">{name}</option>
-                                    ))}
-                                </select>
+                                <div className="relative group">
+                                    <select
+                                        value={cell}
+                                        onChange={(e) => onGridChange(i, j, parseInt(e.target.value))}
+                                        disabled={isDisabled}
+                                        className={`w-full aspect-square border-2 font-orbitron font-black text-[10px] tracking-tighter appearance-none text-center cursor-pointer transition-all focus:outline-none focus:border-white/50 rounded-sm ${bgColorClass}`}
+                                    >
+                                        {Object.entries(GATE_NAMES).map(([key, name]) => (
+                                            <option key={key} value={key} className="bg-slate-950">{name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute top-1 right-1.5 pointer-events-none">
+                                        <div className="w-1.5 h-1.5 bg-white/20 rounded-full"></div>
+                                    </div>
+                                </div>
                             </Tooltip>
                         )
                     })
                 )}
             </div>
-             <Tooltip text="Resets the kernel to its default configuration (Standard preset)">
-                <button
-                    onClick={onReset}
-                    disabled={isDisabled}
-                    className="mt-4 w-full relative px-4 py-2 text-sm font-bold rounded-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 border border-transparent disabled:opacity-40 disabled:cursor-not-allowed transform hover:-translate-y-px active:translate-y-0 text-gray-300 bg-gray-800/50 border-gray-600/50 hover:bg-gray-700/50 hover:border-gray-500 focus:ring-gray-500"
-                >
-                    RESET KERNEL
-                </button>
-            </Tooltip>
+            
+            <button
+                onClick={onReset}
+                disabled={isDisabled}
+                className="mt-6 w-full py-3 bg-slate-950 border border-slate-800 hover:border-amber-500/50 hover:bg-amber-500/5 text-slate-500 hover:text-amber-400 font-orbitron font-extrabold text-[10px] tracking-[0.22em] transition-all disabled:opacity-20 rounded-sm"
+            >
+                RESET_CORE_STATE
+            </button>
         </div>
     );
 };

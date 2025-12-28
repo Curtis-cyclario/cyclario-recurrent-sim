@@ -1,5 +1,5 @@
 
-import { SIZE } from './constants';
+import { SIZE, DEPTH } from './constants';
 import type { Lattice3D, UserPattern } from './types';
 
 interface Pattern2D {
@@ -67,13 +67,12 @@ const PATTERNS_2D: Pattern2D[] = [
   },
 ];
 
-// This function creates a base 3D lattice with no active cells
+// Helper for flattened indexing in the Uint8Array
+const getIdx = (i: number, j: number, k: number, depth: number) => (i * SIZE * depth) + (j * depth) + k;
+
+// This function creates a base 3D lattice with no active cells as a flattened Uint8Array
 const createBaseLattice = (depth: number): Lattice3D => {
-    return Array.from({ length: SIZE }, () => 
-      Array.from({ length: SIZE }, () => 
-        Array(depth).fill(0)
-      )
-    );
+    return new Uint8Array(SIZE * SIZE * depth);
 }
 
 
@@ -84,9 +83,10 @@ export const generateLatticeFromPattern = (pattern: number[][], depth: number): 
     const patternWidth = pattern[0].length;
     const middleLayer = Math.floor(depth / 2);
 
+    // Helper to set a cell value in the flattened array
     const setCell = (r: number, c: number, value: number) => {
         if (r >= 0 && r < SIZE && c >= 0 && c < SIZE) {
-            baseLattice[r][c][middleLayer] = value;
+            baseLattice[getIdx(r, c, middleLayer, depth)] = value;
         }
     };
     
@@ -113,9 +113,10 @@ export const generateLatticeFromPattern = (pattern: number[][], depth: number): 
     return baseLattice;
 };
 
+// Default patterns are now created using the system-wide DEPTH constant for binary compatibility
 export const DEFAULT_PATTERNS: UserPattern[] = PATTERNS_2D.map((p, index) => ({
   id: `default-${index}`,
   name: p.name,
-  data: generateLatticeFromPattern(p.data, 3), // Default patterns are created for the default depth of 3
+  data: generateLatticeFromPattern(p.data, DEPTH), 
   isDefault: true,
 }));

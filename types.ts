@@ -1,5 +1,5 @@
 
-export type Lattice3D = number[][][];
+export type Lattice3D = Uint8Array; // Flattened [SIZE * SIZE * DEPTH]
 
 export interface MetricsData {
   delta_swastika: number;
@@ -51,7 +51,6 @@ export interface GlyphNode {
 }
 export type GlyphMapData = GlyphNode[][];
 
-// Added to support SOM components
 export type SOMNode = GlyphNode;
 export type SOMMap = GlyphMapData;
 
